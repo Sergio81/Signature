@@ -19,6 +19,7 @@ class CaptureSignatureView(context: Context, attr: AttributeSet) : View(context,
     private var mY: Float = 0.toFloat()
     private val touchTolerance = 4f
     private val lineThickness = 4f
+    private var signatureCallback: SignatureListener? = null
 
     val bytes: ByteArray
         get() {
@@ -57,6 +58,7 @@ class CaptureSignatureView(context: Context, attr: AttributeSet) : View(context,
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeWidth = lineThickness
+        this.setBackgroundColor(Color.TRANSPARENT)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -74,7 +76,7 @@ class CaptureSignatureView(context: Context, attr: AttributeSet) : View(context,
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.drawColor(Color.WHITE)
+        canvas.drawColor(Color.TRANSPARENT)
         canvas.drawBitmap(globalBitmap!!, 0f, 0f, bitmapPaint)
         canvas.drawPath(path, paint)
     }
@@ -105,7 +107,12 @@ class CaptureSignatureView(context: Context, attr: AttributeSet) : View(context,
             canvas!!.drawPoint(mX, mY, paint)
         }
 
+        if (!containSignature)
+            signatureCallback?.onStartDrawing()
+
         containSignature = true
+
+
         path.reset()
     }
 
@@ -136,7 +143,15 @@ class CaptureSignatureView(context: Context, attr: AttributeSet) : View(context,
 
     fun clearCanvas() {
         containSignature = false
-        canvas!!.drawColor(Color.WHITE)
+        canvas!!.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         invalidate()
+    }
+
+    fun setSignatureListener(callback: SignatureListener) {
+        signatureCallback = callback
+    }
+
+    interface SignatureListener {
+        fun onStartDrawing()
     }
 }
